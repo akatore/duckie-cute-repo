@@ -39,7 +39,13 @@ if [ -f "$CI" ]; then
     check "installs packages with apt-get" grep -q 'apt-get install' "$CI"
     check "runs make ... test" grep -qE 'make .*test' "$CI"
     check "runs prove" grep -q 'prove' "$CI"
-    if grep -q $'\t' "$CI"; then fail "no tab characters (YAML forbids tabs for indentation)"; else pass "no tab characters"; fi
+    if ! code_grep '^jobs:' "$CI"; then
+        fail "no tab characters (write the workflow first)"
+    elif grep -q $'\t' "$CI"; then
+        fail "no tab characters (YAML forbids tabs for indentation)"
+    else
+        pass "no tab characters"
+    fi
 else
     fail "$CI exists"
 fi

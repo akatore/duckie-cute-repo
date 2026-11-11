@@ -51,32 +51,42 @@ perl "$DIR/load_catalog.pl" "$DB" "$PROBES" >/dev/null 2>&1
 [ "$(sql 'SELECT COUNT(*) FROM media_file;')|$(sql 'SELECT COUNT(*) FROM stream;')" = "8|15" ] \
     && pass "loading twice creates no duplicates" || fail "loading twice creates no duplicates"
 
-check "loader uses placeholders (?)" grep -q '?' "$DIR/load_catalog.pl"
-check "loader uses a transaction (begin_work / commit)" grep -qE 'begin_work|AutoCommit *=> *0' "$DIR/load_catalog.pl"
-check "loader enables foreign keys" grep -qi 'foreign_keys' "$DIR/load_catalog.pl"
+check "loader uses placeholders (?)" code_grep '\?' "$DIR/load_catalog.pl"
+check "loader uses a transaction (begin_work / commit)" code_grep 'begin_work|AutoCommit *=> *0' "$DIR/load_catalog.pl"
+check "loader enables foreign keys" code_grep '[Ff][Oo][Rr][Ee][Ii][Gg][Nn]_[Kk][Ee][Yy][Ss]' "$DIR/load_catalog.pl"
 
-printf '[{"path":"bad.mp4","container":"mp4","duration":1,"bit_rate":1,"streams":[{"index":0,"type":"subtitle","codec":"srt"}]}]' > "$TMP/bad.json"
-before=$(sql 'SELECT COUNT(*) FROM media_file;')
-if perl "$DIR/load_catalog.pl" "$DB" "$TMP/bad.json" >/dev/null 2>&1; then
-    fail "invalid stream kind makes the loader fail"
-else
-    pass "invalid stream kind makes the loader fail (CHECK constraint)"
-fi
-[ "$(sql 'SELECT COUNT(*) FROM media_file;')" = "$before" ] && pass "failed load is rolled back" || fail "failed load is rolled back (bad.mp4 was left behind)"
+# The remaining tests only mean something once the schema and loader work.
+NEEDS="(needs a working schema and loader first)"
+if [ "$(sql 'SELECT COUNT(*) FROM media_file;')" = 8 ] && has_column stream file_id; then
+    printf '[{"path":"bad.mp4","container":"mp4","duration":1,"bit_rate":1,"streams":[{"index":0,"type":"subtitle","codec":"srt"}]}]' > "$TMP/bad.json"
+    if perl "$DIR/load_catalog.pl" "$DB" "$TMP/bad.json" >/dev/null 2>&1; then
+        fail "invalid stream kind makes the loader fail"
+    else
+        pass "invalid stream kind makes the loader fail (CHECK constraint)"
+    fi
+    [ "$(sql 'SELECT COUNT(*) FROM media_file;')" = 8 ] && pass "failed load is rolled back" || fail "failed load is rolled back (bad.mp4 was left behind)"
 
-echo "Constraints"
-if sqlite3 "$DB" "PRAGMA foreign_keys=ON; INSERT INTO stream (file_id, stream_index, kind, codec) VALUES (999, 0, 'video', 'h264');" 2>/dev/null; then
-    fail "stream with unknown file_id is rejected"
+    echo "Constraints"
+    if sqlite3 "$DB" "PRAGMA foreign_keys=ON; INSERT INTO stream (file_id, stream_index, kind, codec) VALUES (999, 0, 'video', 'h264');" 2>/dev/null; then
+        fail "stream with unknown file_id is rejected"
+    else
+        pass "stream with unknown file_id is rejected (foreign key)"
+    fi
+    if sqlite3 "$DB" "INSERT INTO media_file (path, container, duration_s) VALUES ('audio/jingle.wav', 'wav', 1);" 2>/dev/null; then
+        fail "duplicate path is rejected"
+    else
+        pass "duplicate path is rejected (UNIQUE)"
+    fi
+    sqlite3 "$DB" "PRAGMA foreign_keys=ON; DELETE FROM media_file WHERE path = 'movies/sintel_720p.mkv';" 2>/dev/null
+    [ "$(sql 'SELECT COUNT(*) FROM stream;')" = 12 ] && pass "deleting a file deletes its streams (ON DELETE CASCADE)" || fail "deleting a file deletes its streams (ON DELETE CASCADE)"
 else
-    pass "stream with unknown file_id is rejected (foreign key)"
+    echo "Constraints"
+    for t in "invalid stream kind makes the loader fail" "failed load is rolled back" \
+             "stream with unknown file_id is rejected" "duplicate path is rejected" \
+             "deleting a file deletes its streams"; do
+        fail "$t $NEEDS"
+    done
 fi
-if sqlite3 "$DB" "INSERT INTO media_file (path, container, duration_s) VALUES ('audio/jingle.wav', 'wav', 1);" 2>/dev/null; then
-    fail "duplicate path is rejected"
-else
-    pass "duplicate path is rejected (UNIQUE)"
-fi
-sqlite3 "$DB" "PRAGMA foreign_keys=ON; DELETE FROM media_file WHERE path = 'movies/sintel_720p.mkv';"
-[ "$(sql 'SELECT COUNT(*) FROM stream;')" = 12 ] && pass "deleting a file deletes its streams (ON DELETE CASCADE)" || fail "deleting a file deletes its streams (ON DELETE CASCADE)"
 
 echo "Queries"
 rm -f "$DB"
@@ -101,14 +111,22 @@ if command -v php >/dev/null 2>&1; then
     fi
     check "page has a <table>" grep -qi '<table' "$TMP/page.html"
     missing=0
-    while read -r p; do grep -qF "$p" "$TMP/page.html" || missing=$((missing + 1)); done < <(sql 'SELECT path FROM media_file;')
+    while read -r p; do grep -qF "$p" "$TMP/page.html" || missing=$((missing + 1)); done \
+        < <(perl -MJSON::PP -0777 -ne 'print "$_->{path}\n" for @{ decode_json($_) }' "$PROBES")
     [ "$missing" = 0 ] && pass "page lists all 8 paths" || fail "page lists all 8 paths ($missing missing)"
     check "page shows codecs (GROUP_CONCAT)" grep -q 'pcm_s16le' "$TMP/page.html"
     check "page shows duration with 1 decimal" grep -q '596\.5' "$TMP/page.html"
 
-    sqlite3 "$DB" "INSERT INTO media_file (path, container, duration_s) VALUES ('<script>alert(1)</script>.mp4', 'mp4', 1);"
-    CATALOG_DB="$DB" php "$DIR/www/index.php" > "$TMP/page2.html" 2>/dev/null
-    if grep -qF '<script>alert(1)' "$TMP/page2.html"; then fail "values are HTML-escaped (XSS)"; else pass "values are HTML-escaped (XSS)"; fi
+    if sqlite3 "$DB" "INSERT INTO media_file (path, container, duration_s) VALUES ('<script>alert(1)</script>.mp4', 'mp4', 1);" 2>/dev/null; then
+        CATALOG_DB="$DB" php "$DIR/www/index.php" > "$TMP/page2.html" 2>/dev/null
+        if grep -qF '&lt;script&gt;alert(1)' "$TMP/page2.html" && ! grep -qF '<script>alert(1)' "$TMP/page2.html"; then
+            pass "values are HTML-escaped (XSS)"
+        else
+            fail "values are HTML-escaped (XSS)"
+        fi
+    else
+        fail "values are HTML-escaped (XSS) $NEEDS"
+    fi
 else
     echo "  SKIP  php not installed"
 fi

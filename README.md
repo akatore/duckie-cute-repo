@@ -20,7 +20,7 @@ By day 10 you have a working project in your own git repo that you can explain i
 
 | Day | Folder | Topic | Problem |
 |-----|--------|-------|---------|
-| 0 | this file | Setup (30 min) | Install tools, run `setup_check.sh` |
+| 0 | `ubuntu/` | Setup (30 min) | Follow `ubuntu/SETUP.md`, run `ubuntu/install.sh` |
 | 1 | `day01-linux-git` | Linux shell, pipes, git | `logstats.sh`: analyse a web server log |
 | 2 | `day02-perl-basics` | Perl basics | `logstats.pl`: same report in Perl |
 | 3 | `day03-perl-modules-testing` | Perl modules, data structures, Test::More | `MediaName.pm` + unit tests |
@@ -45,20 +45,15 @@ or after you have been stuck for 30+ minutes on one thing.
 
 ## Day 0: setup on KodeKloud Playground (Ubuntu)
 
-No desktop/GUI is needed; the terminal is enough. For the HTML pages (days 5 and 8) either use
-the playground's "open port"/URL feature, or copy the `.html` file to Windows and open it in a browser.
+Follow **[ubuntu/SETUP.md](ubuntu/SETUP.md)**. It covers both Ubuntu on Windows (WSL) and the
+KodeKloud Playground, and ends with one command that installs everything:
 
 ```bash
-sudo apt update
-sudo apt install -y build-essential gdb valgrind git curl perl libxml-libxml-perl \
-    libdbd-sqlite3-perl sqlite3 php-cli php-sqlite3 ffmpeg python3
-
-git config --global user.name  "Your Name"
-git config --global user.email "you@example.com"
-git config --global init.defaultBranch main
+bash ubuntu/install.sh
 ```
 
-Then get the kit onto the VM (below) and run `bash prep/setup_check.sh`.
+No desktop/GUI is needed; the terminal is enough. For the HTML pages (days 5 and 8) either use
+the playground's "open port"/URL feature, or copy the `.html` file to Windows and open it in a browser.
 
 ### Getting the kit onto the VM (once)
 

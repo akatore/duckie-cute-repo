@@ -34,12 +34,12 @@ if perl "$SCRIPT" "$TMP/missing.mpd" >/dev/null 2>&1; then fail "fails on a miss
 echo "Part 2: index.html (building blocks only; test the behaviour in a browser)"
 HTML="$DIR/index.html"
 check "index.html exists" test -f "$HTML"
-check "fetches representations.json" grep -q 'fetch(.*representations\.json' "$HTML"
-check "has a table with a tbody" grep -q '<tbody' "$HTML"
-check "has header cells with data-key" grep -q '<th[^>]*data-key=' "$HTML"
-check "listens to events (addEventListener)" grep -q 'addEventListener' "$HTML"
-check "uses textContent for values" grep -q 'textContent' "$HTML"
-check "handles fetch errors (catch or res.ok)" grep -qE '\.catch\(|catch *\(|\.ok' "$HTML"
+check "fetches representations.json" code_grep 'fetch\(.*representations\.json' "$HTML"
+check "has a table with a tbody" code_grep '<tbody' "$HTML"
+check "has header cells with data-key" code_grep '<th[^>]*data-key=' "$HTML"
+check "listens to events (addEventListener)" code_grep 'addEventListener' "$HTML"
+check "uses textContent for values" code_grep 'textContent' "$HTML"
+check "handles fetch errors (catch or res.ok)" code_grep '\.catch\(|catch *\(|\.ok' "$HTML"
 if grep -q 'innerHTML *[+]\?= *[^"'"'"'`]' "$HTML"; then
     fail "does not put data into innerHTML"
 else

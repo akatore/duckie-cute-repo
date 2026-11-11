@@ -33,6 +33,7 @@ pass "server starts and keeps running"
 
 # request METHOD PATH -> sets CODE, writes body to $TMP/body and headers to $TMP/headers
 request() {
+    : > "$TMP/body"; : > "$TMP/headers"
     CODE=$(curl -s -X "$1" -D "$TMP/headers" -o "$TMP/body" -w '%{http_code}' --max-time 5 "$BASE$2")
 }
 header() { grep -i "^$1:" "$TMP/headers" | head -n 1 | cut -d: -f2- | tr -d ' \r'; }
@@ -45,7 +46,7 @@ case "$(header Content-Type)" in
     *) fail "Content-Type: application/json (got '$(header Content-Type)')" ;;
 esac
 body_len=$(wc -c < "$TMP/body" | tr -d ' ')
-[ "$(header Content-Length)" = "$body_len" ] && pass "Content-Length matches body size" || fail "Content-Length matches body size (header '$(header Content-Length)', body $body_len bytes)"
+[ -n "$(header Content-Length)" ] && [ "$(header Content-Length)" = "$body_len" ] && pass "Content-Length matches body size" || fail "Content-Length matches body size (header '$(header Content-Length)', body $body_len bytes)"
 [ "$(header Connection)" = "close" ] && pass "Connection: close" || fail "Connection: close"
 head -n 1 "$TMP/headers" | grep -q $'\r$' && pass "status line ends with \\r\\n" || fail "status line ends with \\r\\n"
 

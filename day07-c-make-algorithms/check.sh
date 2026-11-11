@@ -56,8 +56,13 @@ for t in test1 test2; do
         show_diff "$HERE/check/$t.expected" "$TMP/$t.out"
     fi
 done
-if "$DIR/wavinfo" "$TMP/not_a_wav.wav" >/dev/null 2>&1; then fail "non-WAV file exits non-zero"; else pass "non-WAV file exits non-zero"; fi
-if "$DIR/wavinfo" "$TMP/missing.wav" >/dev/null 2>&1; then fail "missing file exits non-zero"; else pass "missing file exits non-zero"; fi
+if [ ! -x "$DIR/wavinfo" ]; then
+    fail "non-WAV file exits non-zero (wavinfo not built)"
+    fail "missing file exits non-zero (wavinfo not built)"
+else
+    if "$DIR/wavinfo" "$TMP/not_a_wav.wav" >/dev/null 2>&1; then fail "non-WAV file exits non-zero"; else pass "non-WAV file exits non-zero"; fi
+    if "$DIR/wavinfo" "$TMP/missing.wav" >/dev/null 2>&1; then fail "missing file exits non-zero"; else pass "missing file exits non-zero"; fi
+fi
 
 if command -v valgrind >/dev/null 2>&1; then
     if valgrind --error-exitcode=9 --leak-check=full --errors-for-leak-kinds=definite -q \

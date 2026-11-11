@@ -13,6 +13,12 @@ check() {
     if "$@" >/dev/null 2>&1; then pass "$desc"; else fail "$desc"; fi
 }
 
+# code_grep ERE FILE -> like grep -qE, but ignores comment lines (so TODO hints don't count)
+code_grep() {
+    [ -f "$2" ] || return 1
+    grep -vE '^[[:space:]]*(#|//|--|<!--|\*)' "$2" | grep -qE "$1"
+}
+
 need() {
     if ! command -v "$1" >/dev/null 2>&1; then
         echo "Missing tool '$1'. Run the setup from prep/README.md (Day 0)."

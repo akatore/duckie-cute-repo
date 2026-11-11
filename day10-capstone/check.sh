@@ -39,7 +39,11 @@ else
 fi
 check "run_all.sh prints ALL GOOD" grep -q 'ALL GOOD' "$TMP/e2e.log"
 check "media files generated in WORK/media" test "$(find "$WORK/media" -type f 2>/dev/null | wc -l)" -ge 3
-check "probes.json is a JSON array of 3 files" bash -c "perl -MJSON::PP -0777 -ne 'exit(@{ decode_json(\$_) } == 3 ? 0 : 1)' '$WORK/probes.json'"
+if [ -s "$WORK/probes.json" ] && perl -MJSON::PP -0777 -e 'exit(@{ decode_json(<STDIN>) } == 3 ? 0 : 1)' < "$WORK/probes.json" 2>/dev/null; then
+    pass "probes.json is a JSON array of 3 files"
+else
+    fail "probes.json is a JSON array of 3 files"
+fi
 n=$(sqlite3 "$WORK/catalog.db" 'SELECT COUNT(*) FROM media_file;' 2>/dev/null)
 [ "$n" = 3 ] && pass "catalog.db has 3 files" || fail "catalog.db has 3 files (got '${n}')"
 sleep 0.5
@@ -75,12 +79,12 @@ fi
 
 echo "README and CI"
 lines=$(grep -cv '^\s*$' "$DIR/README.md" 2>/dev/null)
-[ "${lines:-0}" -ge 15 ] && pass "README has content ($lines non-empty lines)" || fail "README has content (only ${lines:-0} non-empty lines)"
+[ "${lines:-0}" -ge 25 ] && pass "README has content ($lines non-empty lines)" || fail "README has content (only ${lines:-0} non-empty lines)"
 check "README has an Architecture section" grep -qiE '^#+ *architecture' "$DIR/README.md"
 if grep -q '<!-- TODO' "$DIR/README.md"; then fail "README has no TODO placeholders left"; else pass "README has no TODO placeholders left"; fi
 CI="$DIR/.github/workflows/ci.yml"
-check "CI runs make test" grep -q 'make test' "$CI"
-check "CI runs run_all.sh" grep -q 'run_all.sh' "$CI"
-check "CI installs ffmpeg" grep -q 'ffmpeg' "$CI"
+check "CI runs make test" code_grep 'make test' "$CI"
+check "CI runs run_all.sh" code_grep 'run_all\.sh' "$CI"
+check "CI installs ffmpeg" code_grep 'ffmpeg' "$CI"
 
 summary
