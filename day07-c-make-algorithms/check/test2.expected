@@ -1,0 +1,7 @@
+format: PCM
+channels: 1
+sample_rate: 8000
+bits_per_sample: 16
+duration: 0.500s
+peak: 32768
+peak_dbfs: 0.00

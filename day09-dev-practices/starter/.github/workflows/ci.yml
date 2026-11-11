@@ -1,0 +1,3 @@
+# TODO: GitHub Actions workflow (see NOTES.md and PROBLEM.md)
+# Note: GitHub only runs workflows from .github/workflows/ at the ROOT of a repository.
+# When you push your prep repo, copy this file to <repo>/.github/workflows/ci.yml.

@@ -1,0 +1,2 @@
+-- Q1: Files per container, most first, then by container name: container|count
+-- TODO: write one SELECT statement

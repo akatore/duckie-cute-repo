@@ -1,0 +1,2 @@
+-- Q4: Total duration of all files in hours, rounded to 2 decimals
+-- TODO: write one SELECT statement

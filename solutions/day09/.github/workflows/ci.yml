@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libxml-libxml-perl libdbd-sqlite3-perl sqlite3
+
+      - name: C unit tests (Day 7)
+        run: make -C day07-c-make-algorithms/starter test
+
+      - name: Perl unit tests (Day 3)
+        run: prove -l -I day03-perl-modules-testing/starter/lib -r day03-perl-modules-testing/starter/t
+
+      - name: Day checkers that need no extra services
+        run: |
+          bash day02-perl-basics/check.sh
+          bash day05-html-js-xml/check.sh

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>DASH representations</title>
+  <style>
+    body { font-family: sans-serif; margin: 2rem; }
+    table { border-collapse: collapse; margin-top: 1rem; }
+    th, td { border: 1px solid #aaa; padding: 4px 10px; text-align: left; }
+    th { cursor: pointer; background: #eee; }
+    th.sorted::after { content: " \25B2"; }
+    th.sorted.desc::after { content: " \25BC"; }
+    .error { color: #b00; }
+  </style>
+</head>
+<body>
+  <h1>DASH representations</h1>
+
+  <label>Type:
+    <select id="type-filter">
+      <option value="">all</option>
+      <option value="video">video</option>
+      <option value="audio">audio</option>
+    </select>
+  </label>
+
+  <p id="message"></p>
+
+  <table id="reps">
+    <thead>
+      <tr>
+        <th data-key="id">ID</th>
+        <th data-key="type">Type</th>
+        <th data-key="codecs">Codecs</th>
+        <th data-key="bandwidth">Bandwidth (kbps)</th>
+        <th data-key="height">Resolution / sample rate</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const state = { rows: [], sortKey: "bandwidth", desc: true, type: "" };
+
+    function detail(rep) {
+      return rep.type === "video" ? `${rep.width}x${rep.height}` : `${rep.sample_rate} Hz`;
+    }
+
+    function compare(a, b, key) {
+      const x = a[key] ?? a.sample_rate ?? "";
+      const y = b[key] ?? b.sample_rate ?? "";
+      return typeof x === "number" && typeof y === "number"
+        ? x - y
+        : String(x).localeCompare(String(y));
+    }
+
+    function render() {
+      const tbody = document.querySelector("#reps tbody");
+      tbody.replaceChildren();
+
+      const rows = state.rows
+        .filter(rep => state.type === "" || rep.type === state.type)
+        .sort((a, b) => compare(a, b, state.sortKey) * (state.desc ? -1 : 1));
+
+      for (const rep of rows) {
+        const tr = document.createElement("tr");
+        const cells = [rep.id, rep.type, rep.codecs, Math.round(rep.bandwidth / 1000), detail(rep)];
+        for (const value of cells) {
+          const td = document.createElement("td");
+          td.textContent = value;
+          tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+      }
+
+      document.querySelectorAll("th").forEach(th => {
+        th.classList.toggle("sorted", th.dataset.key === state.sortKey);
+        th.classList.toggle("desc", th.dataset.key === state.sortKey && state.desc);
+      });
+      document.querySelector("#message").textContent = `${rows.length} of ${state.rows.length} representations`;
+    }
+
+    document.querySelectorAll("th").forEach(th => {
+      th.addEventListener("click", () => {
+        state.desc = th.dataset.key === state.sortKey ? !state.desc : false;
+        state.sortKey = th.dataset.key;
+        render();
+      });
+    });
+
+    document.querySelector("#type-filter").addEventListener("change", ev => {
+      state.type = ev.target.value;
+      render();
+    });
+
+    async function load() {
+      const res = await fetch("representations.json");
+      if (!res.ok) throw new Error(`HTTP ${res.status} while loading representations.json`);
+      state.rows = await res.json();
+      render();
+    }
+
+    load().catch(err => {
+      const msg = document.querySelector("#message");
+      msg.className = "error";
+      msg.textContent = `Could not load data: ${err.message}`;
+    });
+  </script>
+</body>
+</html>

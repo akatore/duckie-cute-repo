@@ -1,0 +1,22 @@
+[Unit]
+Description=Media catalog HTTP API
+Documentation=file:///opt/mediacatalog/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=mediacat
+Group=mediacat
+WorkingDirectory=/opt/mediacatalog
+ExecStart=/usr/bin/perl /opt/mediacatalog/server.pl 8080 /srv/media
+Restart=on-failure
+RestartSec=2
+# Hardening: the service only needs to read the media folder.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

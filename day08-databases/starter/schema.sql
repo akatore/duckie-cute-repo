@@ -1,0 +1,4 @@
+-- TODO: CREATE TABLE media_file (...)
+-- TODO: CREATE TABLE stream (...) with the foreign key (ON DELETE CASCADE), the CHECK on kind,
+--       and UNIQUE (file_id, stream_index)
+-- TODO: CREATE INDEX on stream(codec)

@@ -1,0 +1,1 @@
+-- TODO: copy day08-databases/starter/schema.sql here

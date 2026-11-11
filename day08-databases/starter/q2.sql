@@ -1,0 +1,2 @@
+-- Q2: Paths of files with no video stream, alphabetically
+-- TODO: write one SELECT statement

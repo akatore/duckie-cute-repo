@@ -1,0 +1,2 @@
+# TODO: CI for the capstone: install ffmpeg, sqlite3, curl, libdbd-sqlite3-perl,
+#       then run `make test` and `bash run_all.sh`.

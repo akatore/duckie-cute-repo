@@ -1,0 +1,4 @@
+mov,mp4,m4a,3gp,3g2,mj2|3
+matroska,webm|2
+mpegts|2
+wav|1

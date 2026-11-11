@@ -1,0 +1,2 @@
+-- Q3: Per video codec: streams and maximum height, by codec: codec|streams|max_height
+-- TODO: write one SELECT statement

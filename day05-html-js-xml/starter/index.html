@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>DASH representations</title>
+  <style>
+    body { font-family: sans-serif; margin: 2rem; }
+    table { border-collapse: collapse; margin-top: 1rem; }
+    th, td { border: 1px solid #aaa; padding: 4px 10px; text-align: left; }
+    th { cursor: pointer; background: #eee; }
+    .error { color: #b00; }
+  </style>
+</head>
+<body>
+  <h1>DASH representations</h1>
+
+  <label>Type:
+    <select id="type-filter">
+      <option value="">all</option>
+      <option value="video">video</option>
+      <option value="audio">audio</option>
+    </select>
+  </label>
+
+  <p id="message"></p>
+
+  <table id="reps">
+    <thead>
+      <tr>
+        <!-- TODO: one header cell per column; give each a data-key attribute naming the JSON field -->
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    // TODO:
+    // 1. load the JSON file next to this page and keep the array in a variable
+    // 2. render(): clear the tbody, apply the type filter, create rows with textContent
+    // 3. clicking a <th> sorts by its data-key (numbers numerically, strings with localeCompare)
+    // 4. on error, show a message in #message
+  </script>
+</body>
+</html>

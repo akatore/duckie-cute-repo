@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MPD xmlns="urn:mpeg:dash:schema:mpd:2011"
+     type="static"
+     mediaPresentationDuration="PT10M34.6S"
+     minBufferTime="PT2S"
+     profiles="urn:mpeg:dash:profile:isoff-on-demand:2011">
+  <BaseURL>https://cdn.example.com/bbb/</BaseURL>
+  <Period id="1">
+    <AdaptationSet id="1" contentType="video" mimeType="video/mp4" segmentAlignment="true">
+      <Representation id="v1080" codecs="avc1.640028" bandwidth="5000000" width="1920" height="1080" frameRate="25"/>
+      <Representation id="v720" codecs="avc1.4d401f" bandwidth="2800000" width="1280" height="720" frameRate="25"/>
+      <Representation id="v480" codecs="avc1.4d401e" bandwidth="1200000" width="854" height="480" frameRate="25"/>
+      <Representation id="v240" codecs="avc1.42c015" bandwidth="400000" width="426" height="240" frameRate="25"/>
+    </AdaptationSet>
+    <AdaptationSet id="2" mimeType="video/mp4" codecs="hvc1.1.6.L120.90">
+      <Representation id="h1080" bandwidth="3000000" width="1920" height="1080" frameRate="25"/>
+      <Representation id="h2160" bandwidth="12000000" width="3840" height="2160" frameRate="25"/>
+    </AdaptationSet>
+    <AdaptationSet id="3" contentType="audio" mimeType="audio/mp4" lang="en">
+      <Representation id="a128" codecs="mp4a.40.2" bandwidth="128000" audioSamplingRate="48000"/>
+      <Representation id="a64" codecs="mp4a.40.5" bandwidth="64000" audioSamplingRate="44100"/>
+    </AdaptationSet>
+  </Period>
+</MPD>
