@@ -40,5 +40,5 @@ Busiest hour: <HH> (<n> requests)
 
 ## Stretch goals
 - Add a cron line that runs the script every 5 minutes and appends to `/tmp/stats.txt`; verify with `tail -f`.
-- Add a 4th section: top 3 requested paths (`$7`).
+- Add a 4th section: number of requests per HTTP method (`GET`, `POST`, `DELETE`). Field `$6` looks like `"GET`, so remove the quote with `tr -d '"'`.
 - Make it work on a gzip'd log too (`zcat`).
